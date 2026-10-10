@@ -12,7 +12,7 @@ const app = express();
 
 // Serve os três apps (passageiro, motorista, admin) direto por este mesmo
 // servidor, assim só precisa hospedar UMA coisa, não duas separadas.
-const pastaFrontend = path.join(__dirname, '..', '..', 'frontend');
+const pastaFrontend = path.join(process.cwd(), 'frontend');
 app.use(express.static(pastaFrontend));
 
 // '*' precisa ser passado como string (libera qualquer origem); uma lista de
