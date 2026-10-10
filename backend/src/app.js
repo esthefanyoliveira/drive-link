@@ -9,7 +9,12 @@ const driverRoutes = require('./routes/driverRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: 'https://vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 // Serve os três apps (passageiro, motorista, admin) direto por este mesmo
 // servidor, assim só precisa hospedar UMA coisa, não duas separadas.
