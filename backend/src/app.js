@@ -9,6 +9,7 @@ const driverRoutes = require('./routes/driverRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
+app.use(cors());
 
 // Serve os três apps (passageiro, motorista, admin) direto por este mesmo
 // servidor, assim só precisa hospedar UMA coisa, não duas separadas.
