@@ -15,8 +15,13 @@ self.addEventListener('activate', (evento) => {
   self.clients.claim();
 });
 
-self.addEventListener('fetch', (evento) => {
-  evento.respondWith(
-    fetch(evento.request).catch(() => caches.match(evento.request))
-  );
-});
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+
+  event.respondWith(
+    caches.match(req).then((cached) => cached || fetch(req))
+    );
+  ]);
