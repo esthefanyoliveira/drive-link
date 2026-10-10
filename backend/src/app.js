@@ -10,7 +10,7 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 app.use(cors({
-  origin: 'https://vercel.app',
+  origin: 'https://drive-link-frontend.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
