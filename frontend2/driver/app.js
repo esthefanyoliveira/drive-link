@@ -10,6 +10,38 @@ const $ = (id) => document.getElementById(id);
 function mostrar(id) { $(id).classList.remove('oculto'); }
 function esconder(id) { $(id).classList.add('oculto'); }
 
+// --- Som e vibração de nova corrida (funciona com o site aberto) ---
+let audioCtx = null;
+
+// Chamada no clique de "Ficar online": o navegador só libera o som depois de um toque.
+function liberarSom() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) {}
+}
+
+// Chamada quando chega uma corrida: 4 bipes + vibração.
+function alertaCorrida() {
+  if (!audioCtx) return;
+  let vezes = 0;
+  const tocar = () => {
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = 880;
+      gain.gain.value = 0.3;
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+      if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+    } catch (e) {}
+    vezes++;
+    if (vezes < 4) setTimeout(tocar, 600);
+  };
+  tocar();
+}
+
 async function api(caminho, opcoes = {}) {
   const resp = await fetch(`${API_URL}${caminho}`, {
     ...opcoes,
@@ -76,6 +108,7 @@ function alternarOnline() {
 }
 
 function ficarOnline() {
+  liberarSom();
   if ($('usarLocalManual').checked) {
     const lat = Number($('latManual').value);
     const lng = Number($('lngManual').value);
@@ -140,137 +173,4 @@ function mostrarSolicitacao(dados) {
   $('reqOrigem').textContent = dados.origemEndereco || `${dados.origemLat.toFixed(4)}, ${dados.origemLng.toFixed(4)}`;
   $('reqDestino').textContent = dados.destinoEndereco || `${dados.destinoLat.toFixed(4)}, ${dados.destinoLng.toFixed(4)}`;
   $('reqDistancia').textContent = `${dados.distanciaKm} km`;
-  $('reqValor').textContent = `R$ ${dados.valorEstimado.toFixed(2)}`;
-  mostrar('painelSolicitacao');
-}
-
-function recusarCorrida() {
-  solicitacaoAtual = null;
-  esconder('painelSolicitacao');
-}
-
-async function aceitarCorrida() {
-  if (!solicitacaoAtual) return;
-  try {
-    const corrida = await api(`/api/rides/${solicitacaoAtual.id}/aceitar`, { method: 'POST' });
-    corridaAtiva = corrida;
-    socket.emit('entrar_corrida', corrida.id);
-    esconder('painelSolicitacao');
-    mostrarCorridaAtiva(corrida);
-  } catch (e) {
-    alert(e.message); // provavelmente outro motorista já aceitou
-    recusarCorrida();
-  }
-}
-
-// --- Corrida ativa ---
-const PROXIMO = {
-  ACEITA: { label: 'Estou a caminho', status: 'MOTORISTA_A_CAMINHO' },
-  MOTORISTA_A_CAMINHO: { label: 'Cheguei ao local', status: 'MOTORISTA_CHEGOU' },
-  MOTORISTA_CHEGOU: { label: 'Iniciar corrida', status: 'EM_ANDAMENTO' },
-  EM_ANDAMENTO: { label: 'Finalizar corrida', status: 'FINALIZADA' },
-};
-
-function mostrarCorridaAtiva(corrida) {
-  mostrar('painelCorridaAtiva');
-  $('statusCorridaAtiva').textContent = corrida.status;
-  const origemTexto = corrida.origem_endereco || `${corrida.origem_lat.toFixed(4)}, ${corrida.origem_lng.toFixed(4)}`;
-  const destinoTexto = corrida.destino_endereco || `${corrida.destino_lat.toFixed(4)}, ${corrida.destino_lng.toFixed(4)}`;
-  $('infoPassageiro').innerHTML = `
-    <div class="linha"><span>Origem</span><strong style="text-align:right;max-width:65%;">${origemTexto}</strong></div>
-    <div class="linha"><span>Destino</span><strong style="text-align:right;max-width:65%;">${destinoTexto}</strong></div>
-    <div class="linha"><span>Valor estimado</span><strong>R$ ${corrida.valor_estimado.toFixed(2)}</strong></div>
-  `;
-  atualizarBotaoProximo(corrida.status);
-
-  setTimeout(() => {
-    if (mapaCorrida) { mapaCorrida.remove(); mapaCorrida = null; }
-    mapaCorrida = L.map('mapaCorrida').setView([corrida.origem_lat, corrida.origem_lng], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapaCorrida);
-    L.marker([corrida.origem_lat, corrida.origem_lng]).addTo(mapaCorrida).bindPopup('Origem');
-    L.marker([corrida.destino_lat, corrida.destino_lng]).addTo(mapaCorrida).bindPopup('Destino');
-  }, 50);
-}
-
-function atualizarBotaoProximo(status) {
-  const proximo = PROXIMO[status];
-  const btn = $('btnProximoStatus');
-  if (!proximo) { btn.disabled = true; btn.textContent = 'Aguardando...'; return; }
-  btn.disabled = false;
-  btn.textContent = proximo.label;
-}
-
-async function avancarStatus() {
-  const proximo = PROXIMO[corridaAtiva.status];
-  if (!proximo) return;
-  try {
-    const atualizada = await api(`/api/rides/${corridaAtiva.id}/status`, {
-      method: 'POST',
-      body: JSON.stringify({ status: proximo.status }),
-    });
-    corridaAtiva = atualizada;
-    if (atualizada.status === 'FINALIZADA') {
-      await avaliarPassageiro();
-      finalizarCorridaLocal();
-    } else {
-      $('statusCorridaAtiva').textContent = atualizada.status;
-      atualizarBotaoProximo(atualizada.status);
-    }
-  } catch (e) { alert(e.message); }
-}
-
-async function avaliarPassageiro() {
-  const nota = prompt('Avalie o passageiro de 1 a 5:', '5');
-  if (nota) {
-    await api(`/api/rides/${corridaAtiva.id}/avaliar`, {
-      method: 'POST',
-      body: JSON.stringify({ nota: Number(nota) }),
-    }).catch(() => {});
-  }
-}
-
-async function cancelarCorridaAtiva() {
-  if (!corridaAtiva) return;
-  try { await api(`/api/rides/${corridaAtiva.id}/cancelar`, { method: 'POST' }); } catch (e) {}
-  finalizarCorridaLocal();
-}
-
-function finalizarCorridaLocal() {
-  corridaAtiva = null;
-  esconder('painelCorridaAtiva');
-  carregarGanhos();
-}
-
-async function carregarGanhos() {
-  const dados = await api('/api/driver/ganhos');
-  $('ganhoCorridas').textContent = dados.corridasFinalizadas;
-  $('ganhoTotal').textContent = `R$ ${dados.totalGanho.toFixed(2)}`;
-}
-
-// --- Socket ---
-function conectarSocket() {
-  socket = io(API_URL, { auth: { token } });
-  socket.on('nova_corrida', (dados) => { if (!corridaAtiva) mostrarSolicitacao(dados); });
-  socket.on('corrida_indisponivel', () => recusarCorrida());
-  socket.on('status_atualizado', ({ status }) => {
-    if (!corridaAtiva) return;
-    corridaAtiva.status = status;
-    $('statusCorridaAtiva').textContent = status;
-    atualizarBotaoProximo(status);
-    if (status === 'CANCELADA') { alert('O passageiro cancelou a corrida.'); finalizarCorridaLocal(); }
-  });
-}
-
-// --- Boot ---
-async function iniciarAppLogado() {
-  $('usuarioNome').textContent = usuario.nome;
-  esconder('telaAuth');
-  mostrar('telaPainel');
-  conectarSocket();
-
-  const { motorista } = await api('/api/driver/perfil');
-  if (motorista.status !== 'aprovado') mostrar('painelAprovacao');
-  await carregarGanhos();
-}
-
-if (token && usuario) { iniciarAppLogado(); }
+  $('reqValor').textContent = `R$ ${dados.valorEstimado.toFixed(2)}`
