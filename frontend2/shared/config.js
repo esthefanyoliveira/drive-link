@@ -2,4 +2,4 @@
 // origem), a API sempre está no mesmo endereço que a página — local ou
 // hospedado, não precisa editar nada aqui nunca mais.
 const BACKEND_URL = 'https://drive-link.onerender.com';
-const API_URL = window.location.hostname.includes('vercel.app') ? BACKEND_URL : window.location.origin;
+const API_URL = 'https://drive-link.onrender.com'
