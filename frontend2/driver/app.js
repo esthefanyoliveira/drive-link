@@ -1,4 +1,4 @@
-Parece que esta mensagem está em inglês
+
 let token = localStorage.getItem('dl_driver_token');
 let usuario = JSON.parse(localStorage.getItem('dl_driver_usuario') || 'null');
 let socket = null;
