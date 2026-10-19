@@ -1,4 +1,3 @@
-
 let token = localStorage.getItem('dl_driver_token');
 let usuario = JSON.parse(localStorage.getItem('dl_driver_usuario') || 'null');
 let socket = null;
@@ -11,36 +10,17 @@ const $ = (id) => document.getElementById(id);
 function mostrar(id) { $(id).classList.remove('oculto'); }
 function esconder(id) { $(id).classList.add('oculto'); }
 
-// --- Som e vibração de nova corrida (funciona com o site aberto) ---
-let audioCtx = null;
-
-// Chamada no clique de "Ficar online": o navegador só libera o som depois de um toque.
-function liberarSom() {
-try {
-audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-if (audioCtx.state === 'suspended') audioCtx.resume();
-} catch (e) {}
-}
-
-// Chamada quando chega uma corrida: 4 bipes + vibração.
-function alertaCorrida() {
-if (!audioCtx) return;
-let vezes = 0;
-const tocar = () => {
-try {
-const osc = audioCtx.createOscillator();
-const gain = audioCtx.createGain();
-osc.frequency.value = 880;
-gain.gain.value = 0.3;
-osc.connect(gain).connect(audioCtx.destination);
-osc.start();
-osc.stop(audioCtx.currentTime + 0.25);
-if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
-} catch (e) {}
-vezes++;
-if (vezes < 4) setTimeout(tocar, 600);
-};
-tocar();
+// Converte um arquivo escolhido em <input type="file"> para base64, pra mandar pro backend como texto.
+function arquivoParaBase64(inputId) {
+return new Promise((resolve) => {
+const input = $(inputId);
+const arquivo = input?.files?.[0];
+if (!arquivo) return resolve(null);
+const leitor = new FileReader();
+leitor.onload = () => resolve(leitor.result); // já vem como "data:image/...;base64,...."
+leitor.onerror = () => resolve(null);
+leitor.readAsDataURL(arquivo);
+});
 }
 
 async function api(caminho, opcoes = {}) {
@@ -75,14 +55,26 @@ salvarSessao(dados);
 
 async function fazerCadastro() {
 $('erroCadastro').textContent = '';
+if (!$('cadAceiteTermos').checked) {
+$('erroCadastro').textContent = 'É preciso aceitar os termos de uso e a política de privacidade.';
+return;
+}
 try {
+const [cnhFoto, documentoFoto] = await Promise.all([
+arquivoParaBase64('cadCnhFoto'),
+arquivoParaBase64('cadDocumentoFoto'),
+]);
 const dados = await api('/api/auth/registrar/motorista', {
 method: 'POST',
 body: JSON.stringify({
 nome: $('cadNome').value, telefone: $('cadTelefone').value,
 email: $('cadEmail').value, senha: $('cadSenha').value,
-cpf: $('cadCpf').value, cnh: $('cadCnh').value,
-veiculo: { marca: $('cadMarca').value, modelo: $('cadModelo').value, cor: $('cadCor').value, placa: $('cadPlaca').value },
+cpf: $('cadCpf').value, cnh: $('cadCnh').value, cnhFoto,
+veiculo: {
+marca: $('cadMarca').value, modelo: $('cadModelo').value,
+cor: $('cadCor').value, placa: $('cadPlaca').value, documentoFoto,
+},
+aceiteTermos: true,
 }),
 });
 salvarSessao(dados);
@@ -93,6 +85,7 @@ function salvarSessao(dados) {
 token = dados.token; usuario = dados.usuario;
 localStorage.setItem('dl_driver_token', token);
 localStorage.setItem('dl_driver_usuario', JSON.stringify(usuario));
+destravarAudio();
 iniciarAppLogado();
 }
 
@@ -105,11 +98,11 @@ location.reload();
 
 // --- Online / offline ---
 function alternarOnline() {
+if (!online) destravarAudio(); // precisa de um clique do usuário pra liberar o som
 if (online) { ficarOffline(); } else { ficarOnline(); }
 }
 
 function ficarOnline() {
-liberarSom();
 if ($('usarLocalManual').checked) {
 const lat = Number($('latManual').value);
 const lng = Number($('lngManual').value);
@@ -167,33 +160,100 @@ corridaId: corridaAtiva?.id || null,
 }
 
 // --- Solicitações de corrida ---
-let solicitacaoAtual = null;
+// Chega uma oferta de cada vez (o backend oferece a 1 motorista por vez, em
+// cascata), mas se uma segunda chegar enquanto o motorista ainda está
+// decidindo a primeira, ela entra numa fila em vez de se perder.
+let ofertaAtual = null;
+let filaOfertas = [];
+let temporizadorOferta = null;
 
 function mostrarSolicitacao(dados) {
-solicitacaoAtual = dados;
+ofertaAtual = dados;
 $('reqOrigem').textContent = dados.origemEndereco || `${dados.origemLat.toFixed(4)}, ${dados.origemLng.toFixed(4)}`;
 $('reqDestino').textContent = dados.destinoEndereco || `${dados.destinoLat.toFixed(4)}, ${dados.destinoLng.toFixed(4)}`;
 $('reqDistancia').textContent = `${dados.distanciaKm} km`;
 $('reqValor').textContent = `R$ ${dados.valorEstimado.toFixed(2)}`;
+iniciarContagemOferta(dados.prazoSegundos || 20);
+atualizarIndicadorFila();
 mostrar('painelSolicitacao');
 }
 
-function recusarCorrida() {
-solicitacaoAtual = null;
+function iniciarContagemOferta(segundos) {
+pararContagemOferta();
+let restante = segundos;
+atualizarBarraTempo(restante, segundos);
+temporizadorOferta = setInterval(() => {
+restante -= 1;
+atualizarBarraTempo(restante, segundos);
+if (restante <= 0) {
+// O backend também vai expirar essa oferta e já ofereceu pro próximo
+// motorista; aqui só tiramos ela da tela deste motorista.
+pararContagemOferta();
+ofertaAtual = null;
 esconder('painelSolicitacao');
+avancarFilaDeOfertas();
+}
+}, 1000);
+}
+
+function pararContagemOferta() {
+if (temporizadorOferta) { clearInterval(temporizadorOferta); temporizadorOferta = null; }
+}
+
+function atualizarBarraTempo(restante, total) {
+const barra = $('barraTempoOferta');
+if (barra) barra.style.width = `${Math.max(0, (restante / total) * 100)}%`;
+const texto = $('tempoOfertaTexto');
+if (texto) texto.textContent = `${Math.max(0, restante)}s`;
+}
+
+function atualizarIndicadorFila() {
+const el = $('filaIndicador');
+if (!el) return;
+if (filaOfertas.length > 0) {
+el.textContent = `+${filaOfertas.length} corrida${filaOfertas.length > 1 ? 's' : ''} esperando você responder essa`;
+el.classList.remove('oculto');
+} else {
+el.classList.add('oculto');
+}
+}
+
+/** Mostra a próxima oferta da fila, se tiver alguma (e o motorista não estiver ocupado). */
+function avancarFilaDeOfertas() {
+if (corridaAtiva) { filaOfertas = []; return; }
+const proxima = filaOfertas.shift();
+atualizarIndicadorFila();
+if (proxima) mostrarSolicitacao(proxima);
+}
+
+async function recusarCorrida() {
+if (!ofertaAtual) return;
+const idCorrida = ofertaAtual.id;
+pararContagemOferta();
+ofertaAtual = null;
+esconder('painelSolicitacao');
+try { await api(`/api/rides/${idCorrida}/recusar`, { method: 'POST' }); } catch (e) { /* segue mesmo assim */ }
+avancarFilaDeOfertas();
 }
 
 async function aceitarCorrida() {
-if (!solicitacaoAtual) return;
+if (!ofertaAtual) return;
+const idCorrida = ofertaAtual.id;
 try {
-const corrida = await api(`/api/rides/${solicitacaoAtual.id}/aceitar`, { method: 'POST' });
+const corrida = await api(`/api/rides/${idCorrida}/aceitar`, { method: 'POST' });
+pararContagemOferta();
+ofertaAtual = null;
+filaOfertas = []; // o motorista ficou ocupado: as outras ofertas na fila não valem mais pra ele
 corridaAtiva = corrida;
 socket.emit('entrar_corrida', corrida.id);
 esconder('painelSolicitacao');
 mostrarCorridaAtiva(corrida);
 } catch (e) {
-alert(e.message); // provavelmente outro motorista já aceitou
-recusarCorrida();
+// Outro motorista foi mais rápido — sem alert() feio, só avisa no próprio painel e segue a fila.
+pararContagemOferta();
+ofertaAtual = null;
+esconder('painelSolicitacao');
+avancarFilaDeOfertas();
 }
 }
 
@@ -207,6 +267,7 @@ EM_ANDAMENTO: { label: 'Finalizar corrida', status: 'FINALIZADA' },
 
 function mostrarCorridaAtiva(corrida) {
 mostrar('painelCorridaAtiva');
+carregarMensagensChat();
 $('statusCorridaAtiva').textContent = corrida.status;
 const origemTexto = corrida.origem_endereco || `${corrida.origem_lat.toFixed(4)}, ${corrida.origem_lng.toFixed(4)}`;
 const destinoTexto = corrida.destino_endereco || `${corrida.destino_lat.toFixed(4)}, ${corrida.destino_lng.toFixed(4)}`;
@@ -281,16 +342,115 @@ $('ganhoCorridas').textContent = dados.corridasFinalizadas;
 $('ganhoTotal').textContent = `R$ ${dados.totalGanho.toFixed(2)}`;
 }
 
+async function carregarNotaMotorista() {
+try {
+const { notaMedia, totalAvaliacoes } = await api('/api/driver/perfil');
+$('notaMotorista').textContent = notaMedia != null
+? `⭐ ${notaMedia.toFixed(1)} (${totalAvaliacoes} avaliações)`
+: 'Ainda sem avaliações';
+} catch (e) { /* silencioso */ }
+}
+
+// --- Chat com o passageiro ---
+function renderizarMensagemChat(msg) {
+const container = $('chatMensagens');
+const vazio = container.querySelector('.chat-vazio');
+if (vazio) vazio.remove();
+const bolha = document.createElement('div');
+bolha.className = `chat-bolha ${msg.remetente_id === usuario.id ? 'minha' : ''}`;
+bolha.textContent = msg.texto;
+container.appendChild(bolha);
+container.scrollTop = container.scrollHeight;
+}
+
+async function carregarMensagensChat() {
+const container = $('chatMensagens');
+container.innerHTML = '<div class="chat-vazio">Nenhuma mensagem ainda.</div>';
+if (!corridaAtiva) return;
+try {
+const mensagens = await api(`/api/rides/${corridaAtiva.id}/mensagens`);
+if (mensagens.length > 0) container.innerHTML = '';
+mensagens.forEach(renderizarMensagemChat);
+} catch (e) { /* silencioso */ }
+}
+
+async function enviarMensagemChat() {
+const texto = $('chatTexto').value.trim();
+if (!texto || !corridaAtiva) return;
+$('chatTexto').value = '';
+try { await api(`/api/rides/${corridaAtiva.id}/mensagens`, { method: 'POST', body: JSON.stringify({ texto }) }); }
+catch (e) { alert(e.message); }
+}
+
+// --- Ajuda / suporte ---
+function irParaAjuda() {
+esconder('telaPainel');
+mostrar('telaAjuda');
+carregarChamadosAjuda();
+}
+
+async function enviarChamadoAjuda() {
+$('erroAjuda').textContent = '';
+const assunto = $('ajudaAssunto').value.trim();
+const mensagem = $('ajudaMensagem').value.trim();
+if (!assunto || !mensagem) { $('erroAjuda').textContent = 'Preencha assunto e mensagem.'; return; }
+try {
+await api('/api/conta/chamados', {
+method: 'POST',
+body: JSON.stringify({ assunto, mensagem, corridaId: corridaAtiva?.id || undefined }),
+});
+$('ajudaAssunto').value = ''; $('ajudaMensagem').value = '';
+carregarChamadosAjuda();
+} catch (e) { $('erroAjuda').textContent = e.message; }
+}
+
+async function carregarChamadosAjuda() {
+const chamados = await api('/api/conta/chamados');
+const html = ['<h2>Meus chamados</h2>'];
+if (chamados.length === 0) html.push('<p style="color:var(--cinza)">Nenhum chamado aberto.</p>');
+chamados.forEach((c) => {
+html.push(`
+<div style="padding:10px 0;border-bottom:1px solid var(--borda);">
+<div class="linha" style="border:none;padding:0 0 2px;">
+<span>${new Date(c.data_abertura).toLocaleDateString('pt-BR')} — ${c.assunto}</span>
+<strong>${c.status}</strong>
+</div>
+<div style="color:var(--cinza);font-size:.78rem;">${c.mensagem}</div>
+${c.resposta ? `<div style="color:var(--ciano);font-size:.8rem;margin-top:4px;">Resposta: ${c.resposta}</div>` : ''}
+</div>`);
+});
+$('listaChamadosAjuda').innerHTML = html.join('');
+}
+
 // --- Socket ---
 function conectarSocket() {
 socket = io(API_URL, { auth: { token } });
 socket.on('nova_corrida', (dados) => {
-if (!corridaAtiva) {
+if (corridaAtiva) return; // já está em outra corrida (não deveria acontecer, mas por garantia)
+tocarSomNovaCorrida();
+vibrar([300, 150, 300]);
+if (ofertaAtual) {
+// já tem uma oferta na tela: essa entra na fila pra ser mostrada em seguida
+filaOfertas.push(dados);
+atualizarIndicadorFila();
+} else {
 mostrarSolicitacao(dados);
-alertaCorrida();
 }
 });
-socket.on('corrida_indisponivel', () => recusarCorrida());
+socket.on('corrida_indisponivel', ({ corridaId } = {}) => {
+if (ofertaAtual && ofertaAtual.id === corridaId) {
+pararContagemOferta();
+ofertaAtual = null;
+esconder('painelSolicitacao');
+avancarFilaDeOfertas();
+} else if (corridaId) {
+filaOfertas = filaOfertas.filter((o) => o.id !== corridaId);
+atualizarIndicadorFila();
+}
+});
+socket.on('nova_mensagem', (msg) => {
+if (msg.remetente_id !== usuario.id) renderizarMensagemChat(msg);
+});
 socket.on('status_atualizado', ({ status }) => {
 if (!corridaAtiva) return;
 corridaAtiva.status = status;
@@ -310,6 +470,8 @@ conectarSocket();
 const { motorista } = await api('/api/driver/perfil');
 if (motorista.status !== 'aprovado') mostrar('painelAprovacao');
 await carregarGanhos();
+await carregarNotaMotorista();
 }
 
 if (token && usuario) { iniciarAppLogado(); }
+
