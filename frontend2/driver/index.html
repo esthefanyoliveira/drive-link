@@ -14,102 +14,135 @@
 <body>
 
 <div class="topo">
-  <div class="marca">Drive<span>Link</span> Motorista</div>
-  <div id="usuarioNome"></div>
+<div class="marca">Drive<span>Link</span> Motorista</div>
+<div id="usuarioNome"></div>
 </div>
 
 <div class="container">
 
-  <!-- LOGIN / CADASTRO -->
-  <div id="telaAuth" class="painel">
-    <div id="formLogin">
-      <h2>Entrar</h2>
-      <label>E-mail</label>
-      <input id="loginEmail" type="email" value="motorista1@teste.com" />
-      <label>Senha</label>
-      <input id="loginSenha" type="password" value="senha123" />
-      <button onclick="fazerLogin()">Entrar</button>
-      <button class="secundario" onclick="mostrarCadastro()">Cadastrar como motorista</button>
-      <div id="erroLogin" class="erro"></div>
-    </div>
+<!-- LOGIN / CADASTRO -->
+<div id="telaAuth" class="painel">
+<div id="formLogin">
+<h2>Entrar</h2>
+<label>E-mail</label>
+<input id="loginEmail" type="email" value="motorista1@teste.com" />
+<label>Senha</label>
+<input id="loginSenha" type="password" value="senha123" />
+<button onclick="fazerLogin()">Entrar</button>
+<button class="secundario" onclick="mostrarCadastro()">Cadastrar como motorista</button>
+<div id="erroLogin" class="erro"></div>
+</div>
 
-    <div id="formCadastro" class="oculto">
-      <h2>Cadastro de motorista</h2>
-      <label>Nome completo</label><input id="cadNome" />
-      <label>Telefone</label><input id="cadTelefone" />
-      <label>E-mail</label><input id="cadEmail" type="email" />
-      <label>Senha</label><input id="cadSenha" type="password" />
-      <label>CPF</label><input id="cadCpf" />
-      <label>CNH</label><input id="cadCnh" />
-      <label>Marca do veículo</label><input id="cadMarca" />
-      <label>Modelo</label><input id="cadModelo" />
-      <label>Cor</label><input id="cadCor" />
-      <label>Placa</label><input id="cadPlaca" />
-      <button onclick="fazerCadastro()">Cadastrar</button>
-      <button class="secundario" onclick="mostrarLogin()">Já tenho conta</button>
-      <div id="erroCadastro" class="erro"></div>
-    </div>
-  </div>
+<div id="formCadastro" class="oculto">
+<h2>Cadastro de motorista</h2>
+<label>Nome completo</label><input id="cadNome" />
+<label>Telefone</label><input id="cadTelefone" />
+<label>E-mail</label><input id="cadEmail" type="email" />
+<label>Senha</label><input id="cadSenha" type="password" />
+<label>CPF</label><input id="cadCpf" />
+<label>CNH</label><input id="cadCnh" />
+<label>Foto da CNH</label><input id="cadCnhFoto" type="file" accept="image/*" />
+<label>Marca do veículo</label><input id="cadMarca" />
+<label>Modelo</label><input id="cadModelo" />
+<label>Cor</label><input id="cadCor" />
+<label>Placa</label><input id="cadPlaca" />
+<label>Foto do documento do veículo</label><input id="cadDocumentoFoto" type="file" accept="image/*" />
+<label class="linha-checkbox">
+<input type="checkbox" id="cadAceiteTermos" />
+<span>Li e aceito os <a href="#" onclick="return false;">termos de uso</a> e a <a href="#" onclick="return false;">política de privacidade</a>.</span>
+</label>
+<button onclick="fazerCadastro()">Cadastrar</button>
+<button class="secundario" onclick="mostrarLogin()">Já tenho conta</button>
+<div id="erroCadastro" class="erro"></div>
+</div>
+</div>
 
-  <!-- PAINEL PRINCIPAL -->
-  <div id="telaPainel" class="oculto">
-    <div class="painel" style="display:flex;align-items:center;justify-content:space-between;">
-      <span id="badgeOnline" class="badge offline">Offline</span>
-      <button id="btnToggle" style="width:auto;margin:0;padding:10px 18px" onclick="alternarOnline()">Ficar online</button>
-    </div>
-    <div class="painel">
-      <label>
-        <input type="checkbox" id="usarLocalManual" onchange="$('camposLocalManual').classList.toggle('oculto', !this.checked)" />
-        Usar localização manual (para testes fora da região, ou se o GPS falhar)
-      </label>
-      <div id="camposLocalManual" class="oculto">
-        <label>Latitude</label>
-        <input id="latManual" type="number" step="0.0001" placeholder="ex: -25.1500" />
-        <label>Longitude</label>
-        <input id="lngManual" type="number" step="0.0001" placeholder="ex: -49.7500" />
-      </div>
-    </div>
-    <div id="painelAprovacao" class="painel oculto">
-      <p style="color:var(--cinza)">Seu cadastro está pendente de aprovação pela administração.</p>
-    </div>
+<!-- PAINEL PRINCIPAL -->
+<div id="telaPainel" class="oculto">
+<div class="painel" style="display:flex;align-items:center;justify-content:space-between;">
+<span id="badgeOnline" class="badge offline">Offline</span>
+<button id="btnToggle" style="width:auto;margin:0;padding:10px 18px" onclick="alternarOnline()">Ficar online</button>
+</div>
+<div class="painel">
+<label>
+<input type="checkbox" id="usarLocalManual" onchange="$('camposLocalManual').classList.toggle('oculto', !this.checked)" />
+Usar localização manual (para testes fora da região, ou se o GPS falhar)
+</label>
+<div id="camposLocalManual" class="oculto">
+<label>Latitude</label>
+<input id="latManual" type="number" step="0.0001" placeholder="ex: -25.1500" />
+<label>Longitude</label>
+<input id="lngManual" type="number" step="0.0001" placeholder="ex: -49.7500" />
+</div>
+</div>
+<div id="painelAprovacao" class="painel oculto">
+<p style="color:var(--cinza)">Seu cadastro está pendente de aprovação pela administração.</p>
+</div>
 
-    <div id="painelSolicitacao" class="painel card-destaque oculto">
-      <h2>Nova corrida</h2>
-      <div class="linha"><span>Origem</span><strong id="reqOrigem" style="text-align:right;max-width:65%;">—</strong></div>
-      <div class="linha"><span>Destino</span><strong id="reqDestino" style="text-align:right;max-width:65%;">—</strong></div>
-      <div class="linha"><span>Distância</span><strong id="reqDistancia">—</strong></div>
-      <div class="linha"><span>Valor estimado</span><strong id="reqValor">—</strong></div>
-      <button onclick="aceitarCorrida()">Aceitar corrida</button>
-      <button class="secundario" onclick="recusarCorrida()">Ignorar</button>
-    </div>
+<div id="painelSolicitacao" class="painel card-destaque oculto">
+<h2>Nova corrida <span id="tempoOfertaTexto" style="float:right;color:var(--cinza);font-weight:normal;font-size:.85rem;">20s</span></h2>
+<div class="barra-tempo-oferta"><div id="barraTempoOferta" class="barra-tempo-oferta-interna"></div></div>
+<div class="linha"><span>Origem</span><strong id="reqOrigem" style="text-align:right;max-width:65%;">—</strong></div>
+<div class="linha"><span>Destino</span><strong id="reqDestino" style="text-align:right;max-width:65%;">—</strong></div>
+<div class="linha"><span>Distância</span><strong id="reqDistancia">—</strong></div>
+<div class="linha"><span>Valor estimado</span><strong id="reqValor">—</strong></div>
+<button onclick="aceitarCorrida()">Aceitar corrida</button>
+<button class="secundario" onclick="recusarCorrida()">Ignorar</button>
+<div id="filaIndicador" class="oculto" style="text-align:center;color:var(--cinza);font-size:.78rem;margin-top:8px;"></div>
+</div>
 
-    <div id="painelCorridaAtiva" class="painel oculto">
-      <span class="badge status" id="statusCorridaAtiva">—</span>
-      <div id="mapaCorrida" style="width:100%;height:220px;border-radius:12px;margin:12px 0;"></div>
-      <div id="infoPassageiro"></div>
-      <button id="btnProximoStatus" onclick="avancarStatus()">—</button>
-      <button class="perigo" onclick="cancelarCorridaAtiva()">Cancelar corrida</button>
-    </div>
+<div id="painelCorridaAtiva" class="painel oculto">
+<span class="badge status" id="statusCorridaAtiva">—</span>
+<div id="mapaCorrida" style="width:100%;height:220px;border-radius:12px;margin:12px 0;"></div>
+<div id="infoPassageiro"></div>
+<label>Conversa com o passageiro</label>
+<div id="chatMensagens" class="chat-mensagens"></div>
+<div style="display:flex;gap:8px;margin-top:8px;">
+<input id="chatTexto" placeholder="Escreva uma mensagem..." style="flex:1" onkeydown="if(event.key==='Enter')enviarMensagemChat()" />
+<button style="width:auto;padding:0 16px;" onclick="enviarMensagemChat()">Enviar</button>
+</div>
+<button id="btnProximoStatus" onclick="avancarStatus()" style="margin-top:12px;">—</button>
+<button class="perigo" onclick="cancelarCorridaAtiva()">Cancelar corrida</button>
+</div>
 
-    <div class="painel" id="painelGanhos">
-      <h2>Ganhos</h2>
-      <div class="linha"><span>Corridas finalizadas</span><strong id="ganhoCorridas">—</strong></div>
-      <div class="linha"><span>Total ganho</span><strong id="ganhoTotal">—</strong></div>
-    </div>
+<div class="painel" id="painelGanhos">
+<h2>Ganhos</h2>
+<div class="linha"><span>Corridas finalizadas</span><strong id="ganhoCorridas">—</strong></div>
+<div class="linha"><span>Total ganho</span><strong id="ganhoTotal">—</strong></div>
+<div class="linha"><span>Sua avaliação</span><strong id="notaMotorista">—</strong></div>
+</div>
 
-    <div class="painel"><button class="secundario" onclick="sair()">Sair</button></div>
-  </div>
+<div class="painel"><button class="secundario" onclick="irParaAjuda()">Ajuda / Suporte</button></div>
+<div class="painel"><button class="secundario" onclick="sair()">Sair</button></div>
+</div>
+
+<!-- TELA: AJUDA / SUPORTE -->
+<div id="telaAjuda" class="oculto">
+<div class="painel">
+<h2>Ajuda / Suporte</h2>
+<label>Assunto</label>
+<input id="ajudaAssunto" placeholder="Ex: Problema com pagamento" />
+<label>Mensagem</label>
+<input id="ajudaMensagem" placeholder="Descreva o que aconteceu..." />
+<button onclick="enviarChamadoAjuda()">Enviar</button>
+<div id="erroAjuda" class="erro"></div>
+</div>
+<div class="painel" id="listaChamadosAjuda"><h2>Meus chamados</h2></div>
+<div class="painel"><button class="secundario" onclick="esconder('telaAjuda'); mostrar('telaPainel');">Voltar</button></div>
+</div>
 
 </div>
 
 <script src="../shared/config.js"></script>
+<script src="../shared/sons.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="app.js"></script>
 <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-  }
+if ('serviceWorker' in navigator) {
+window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
 </script>
 </body>
 </html>
+
