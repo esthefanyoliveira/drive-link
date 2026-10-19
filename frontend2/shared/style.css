@@ -1,118 +1,118 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --preto: #0a0a0c;
-  --painel: #15151b;
-  --painel-alt: #1c1c24;
-  --borda: #272730;
-  --rosa: #ff2d8c;
-  --ciano: #00e5ff;
-  --gradiente: linear-gradient(90deg, var(--rosa), var(--ciano));
-  --branco: #f5f5f7;
-  --cinza: #9a9aa5;
-  --verde: #1fbf75;
-  --vermelho: #e5484d;
-  --raio: 14px;
+--preto: #0a0a0c;
+--painel: #15151b;
+--painel-alt: #1c1c24;
+--borda: #272730;
+--rosa: #ff2d8c;
+--ciano: #00e5ff;
+--gradiente: linear-gradient(90deg, var(--rosa), var(--ciano));
+--branco: #f5f5f7;
+--cinza: #9a9aa5;
+--verde: #1fbf75;
+--vermelho: #e5484d;
+--raio: 14px;
 }
 * { box-sizing: border-box; }
 body {
-  margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background: var(--preto);
-  color: var(--branco);
-  min-height: 100vh;
+margin: 0;
+font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+background: var(--preto);
+color: var(--branco);
+min-height: 100vh;
 }
 h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
 
 .topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  background: rgba(10,10,12,.85);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--borda);
-  position: sticky;
-  top: 0;
-  z-index: 5;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 16px 20px;
+background: rgba(10,10,12,.85);
+backdrop-filter: blur(8px);
+border-bottom: 1px solid var(--borda);
+position: sticky;
+top: 0;
+z-index: 5;
 }
 .topo .marca { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem; }
 .topo .marca span {
-  background: var(--gradiente);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
+background: var(--gradiente);
+-webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .container { max-width: 480px; margin: 0 auto; padding: 20px; }
 
 .painel {
-  background: var(--painel);
-  border: 1px solid var(--borda);
-  border-radius: var(--raio);
-  padding: 18px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+background: var(--painel);
+border: 1px solid var(--borda);
+border-radius: var(--raio);
+padding: 18px;
+margin-bottom: 16px;
+box-shadow: 0 4px 20px rgba(0,0,0,.25);
 }
 .painel h2 {
-  font-size: 1.05rem;
-  margin: 0 0 12px;
-  display: flex; align-items: center; gap: 8px;
+font-size: 1.05rem;
+margin: 0 0 12px;
+display: flex; align-items: center; gap: 8px;
 }
 .painel h2::before {
-  content: "";
-  width: 4px; height: 16px; border-radius: 2px;
-  background: var(--gradiente);
-  display: inline-block;
+content: "";
+width: 4px; height: 16px; border-radius: 2px;
+background: var(--gradiente);
+display: inline-block;
 }
 
 label { display: block; font-size: .85rem; color: var(--cinza); margin: 10px 0 6px; }
 input, select {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--borda);
-  background: var(--painel-alt);
-  color: var(--branco);
-  font-size: 1rem;
-  transition: border-color .15s;
+width: 100%;
+padding: 12px 14px;
+border-radius: 10px;
+border: 1px solid var(--borda);
+background: var(--painel-alt);
+color: var(--branco);
+font-size: 1rem;
+transition: border-color .15s;
 }
 input:focus, select:focus { outline: none; border-color: var(--rosa); }
 
 button {
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  border: none;
-  background: var(--gradiente);
-  color: #0a0a0c;
-  font-size: 1rem;
-  font-weight: 700;
-  margin-top: 14px;
-  cursor: pointer;
-  transition: opacity .15s, transform .1s;
+width: 100%;
+padding: 14px;
+border-radius: 10px;
+border: none;
+background: var(--gradiente);
+color: #0a0a0c;
+font-size: 1rem;
+font-weight: 700;
+margin-top: 14px;
+cursor: pointer;
+transition: opacity .15s, transform .1s;
 }
 button:hover { opacity: .92; }
 button:active { transform: scale(.98); }
 button.secundario {
-  background: transparent;
-  border: 1px solid var(--ciano);
-  color: var(--ciano);
-  font-weight: 600;
+background: transparent;
+border: 1px solid var(--ciano);
+color: var(--ciano);
+font-weight: 600;
 }
 button.perigo { background: var(--vermelho); color: #fff; }
 button:disabled { opacity: .4; cursor: not-allowed; }
 
 #mapa, #mapaCorrida, #mapaAcompanhar {
-  width: 100%; height: 280px; border-radius: var(--raio); margin-bottom: 14px;
-  border: 1px solid var(--borda);
+width: 100%; height: 280px; border-radius: var(--raio); margin-bottom: 14px;
+border: 1px solid var(--borda);
 }
 
 .badge {
-  display: inline-block;
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .02em;
-  text-transform: uppercase;
+display: inline-block;
+padding: 5px 12px;
+border-radius: 999px;
+font-size: .72rem;
+font-weight: 700;
+letter-spacing: .02em;
+text-transform: uppercase;
 }
 .badge.online { background: rgba(31,191,117,.15); color: var(--verde); }
 .badge.offline { background: rgba(154,163,181,.15); color: var(--cinza); }
@@ -134,32 +134,134 @@ tr:hover td { background: rgba(255,255,255,.02); }
 
 .campo-busca { position: relative; }
 .sugestoes {
-  position: absolute; left: 0; right: 0; top: calc(100% + 4px);
-  background: var(--painel-alt); border: 1px solid var(--borda); border-radius: 10px;
-  max-height: 220px; overflow-y: auto; z-index: 20;
-  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+background: var(--painel-alt); border: 1px solid var(--borda); border-radius: 10px;
+max-height: 220px; overflow-y: auto; z-index: 20;
+box-shadow: 0 8px 24px rgba(0,0,0,.4);
 }
 .sugestoes .item {
-  padding: 11px 14px; font-size: .88rem; cursor: pointer; border-bottom: 1px solid var(--borda);
+padding: 11px 14px; font-size: .88rem; cursor: pointer; border-bottom: 1px solid var(--borda);
 }
 .sugestoes .item:last-child { border-bottom: none; }
 .sugestoes .item:hover { background: rgba(255,45,140,.08); }
 .sugestoes .carregando, .sugestoes .vazio { padding: 11px 14px; font-size: .85rem; color: var(--cinza); }
 
 .estrela {
-  font-size: 1.9rem; cursor: pointer; color: var(--borda); transition: color .1s, transform .1s;
-  line-height: 1;
+font-size: 1.9rem; cursor: pointer; color: var(--borda); transition: color .1s, transform .1s;
+line-height: 1;
 }
 .estrela.ativa { color: var(--rosa); }
 .estrela:hover { transform: scale(1.1); }
 
 /* Cartão de solicitação de corrida piscando suavemente, para chamar atenção */
 .card-destaque {
-  border: 1px solid var(--rosa);
-  box-shadow: 0 0 0 0 rgba(255,45,140,.35);
-  animation: pulso 1.6s ease-in-out infinite;
+border: 1px solid var(--rosa);
+box-shadow: 0 0 0 0 rgba(255,45,140,.35);
+animation: pulso 1.6s ease-in-out infinite;
 }
 @keyframes pulso {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255,45,140,.35); }
-  50% { box-shadow: 0 0 0 8px rgba(255,45,140,0); }
+0%, 100% { box-shadow: 0 0 0 0 rgba(255,45,140,.35); }
+50% { box-shadow: 0 0 0 8px rgba(255,45,140,0); }
 }
+
+/* Ícone de carro no mapa (acompanhamento do motorista), com leve "respiro" pra parecer vivo */
+.icone-carro-emoji {
+font-size: 24px;
+line-height: 1;
+text-align: center;
+filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+animation: respiroCarro 1.4s ease-in-out infinite;
+}
+@keyframes respiroCarro {
+0%, 100% { transform: scale(1); }
+50% { transform: scale(1.12); }
+}
+
+/* Radar de "procurando motorista", tipo Uber: ondas pulsando a partir de um carrinho central */
+.radar-procurando {
+position: relative;
+width: 160px; height: 160px;
+margin: 10px auto 18px;
+display: flex; align-items: center; justify-content: center;
+}
+.radar-onda {
+position: absolute;
+width: 100%; height: 100%;
+border-radius: 50%;
+border: 2px solid var(--rosa);
+opacity: 0;
+animation: radarPulso 2.4s ease-out infinite;
+}
+.radar-onda-2 { animation-delay: .8s; }
+.radar-onda-3 { animation-delay: 1.6s; }
+@keyframes radarPulso {
+0% { transform: scale(.25); opacity: .8; }
+100% { transform: scale(1); opacity: 0; }
+}
+.radar-ponto {
+position: relative;
+font-size: 2.1rem;
+z-index: 2;
+filter: drop-shadow(0 2px 6px rgba(0,0,0,.5));
+animation: radarPontoRespiro 1.4s ease-in-out infinite;
+}
+@keyframes radarPontoRespiro {
+0%, 100% { transform: scale(1); }
+50% { transform: scale(1.1); }
+}
+
+/* "..." animado ao lado de "Procurando motorista" */
+.pontos-animados span {
+animation: pontoPisca 1.4s infinite;
+opacity: 0;
+}
+.pontos-animados span:nth-child(1) { animation-delay: 0s; }
+.pontos-animados span:nth-child(2) { animation-delay: .2s; }
+.pontos-animados span:nth-child(3) { animation-delay: .4s; }
+@keyframes pontoPisca {
+0%, 20% { opacity: 0; }
+50% { opacity: 1; }
+100% { opacity: 0; }
+}
+
+/* Checkbox de aceite de termos (LGPD) no cadastro */
+.linha-checkbox {
+display: flex; align-items: flex-start; gap: 8px;
+font-size: .78rem; color: var(--cinza); line-height: 1.35;
+margin: 10px 0 4px; cursor: pointer;
+}
+.linha-checkbox input { width: auto; margin-top: 2px; }
+.linha-checkbox a { color: var(--ciano); }
+
+/* Caixa de chat simples entre passageiro e motorista */
+.chat-mensagens {
+max-height: 180px; overflow-y: auto;
+background: var(--painel-alt); border: 1px solid var(--borda); border-radius: 10px;
+padding: 8px; display: flex; flex-direction: column; gap: 6px;
+}
+.chat-bolha {
+max-width: 80%; padding: 7px 11px; border-radius: 12px; font-size: .85rem;
+background: rgba(255,255,255,.06);
+}
+.chat-bolha.minha { align-self: flex-end; background: var(--rosa); color: #fff; }
+.chat-vazio { color: var(--cinza); font-size: .8rem; text-align: center; padding: 10px 0; }
+
+/* Lista de favoritos clicáveis */
+.chip-favorito {
+background: var(--painel-alt); border: 1px solid var(--borda); color: var(--branco);
+border-radius: 999px; padding: 6px 12px; font-size: .78rem; cursor: pointer;
+display: flex; align-items: center; gap: 6px;
+}
+.chip-favorito:hover { border-color: var(--rosa); }
+.chip-favorito .remover { color: var(--cinza); font-weight: bold; }
+
+/* Barra de contagem regressiva na oferta de corrida pro motorista */
+.barra-tempo-oferta {
+width: 100%; height: 6px; background: var(--painel-alt);
+border-radius: 999px; overflow: hidden; margin-bottom: 12px;
+}
+.barra-tempo-oferta-interna {
+height: 100%; width: 100%; background: var(--gradiente);
+transition: width 1s linear;
+}
+
